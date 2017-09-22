@@ -1,0 +1,2 @@
+use short-road
+db.urlSeq.insert({ _id: "UrlSeq", seq: 1000000 })

@@ -1,9 +1,10 @@
 package com.gaimuk.shortroad.service;
 
-import com.gaimuk.shortroad.common.pojo.UrlPairNotFoundException;
-import com.gaimuk.shortroad.data.mongodb.entity.UrlPair;
-import com.gaimuk.shortroad.data.mongodb.repository.UrlPairRepository;
-import com.gaimuk.shortroad.common.util.Base62Util;
+import com.gaimuk.shortroad.common.exception.UrlNotFoundException;
+import com.gaimuk.shortroad.data.mongodb.document.UrlInfo;
+import com.gaimuk.shortroad.data.mongodb.repository.UrlSeqRepository;
+import com.gaimuk.shortroad.data.mongodb.repository.UrlInfoRepository;
+import com.gaimuk.shortroad.common.util.Base58Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,39 +12,43 @@ import org.springframework.stereotype.Service;
 public class UrlService {
 
     @Autowired
-    private UrlPairRepository urlPairRepository;
+    private UrlInfoRepository urlInfoRepository;
+
+    @Autowired
+    private UrlSeqRepository urlSeqRepository;
 
     /**
-     * Persists the big URL and use the base62-encoded database ID as tiny URL
+     * Persists the big URL and return the base62-encoded seq number
      *
      * @param bigUrl
      * @return
      */
     public String shorten(final String bigUrl) {
-        UrlPair inputUrlPair = new UrlPair();
-        inputUrlPair.setBigUrl(bigUrl);
+        // Construct UrlInfo with the generated TinyUrl ID
+        UrlInfo inputUrlInfo = new UrlInfo();
+        inputUrlInfo.setUrl(bigUrl);
+        inputUrlInfo.setUrlSeq(urlSeqRepository.next());
 
-        final UrlPair savedUrlPair = urlPairRepository.save(inputUrlPair);
-
-        return Base62Util.encode(savedUrlPair.getId());
+        final Long urlSeq = urlInfoRepository.save(inputUrlInfo).getUrlSeq();
+        return Base58Util.encode(urlSeq);
     }
 
-
     /**
-     * Retrieve the URL pair record from DB using base62-decoded tiny URL as database ID,
+     * Retrieve the URL pair record from DB using base62-decoded tiny URL as seq,
      * then return the original big URL
      *
      * @param tinyUrl
-     * @return Big URL paired with input tinyUrl
+     * @return
+     * @throws UrlNotFoundException
      */
-    public String lengthen(final String tinyUrl) throws UrlPairNotFoundException {
-        final UrlPair urlPair = urlPairRepository.findOne(Base62Util.decode(tinyUrl));
+    public String lengthen(final String tinyUrl) throws UrlNotFoundException {
+        final UrlInfo urlInfo = urlInfoRepository.findByUrlSeq(Base58Util.decode(tinyUrl));
 
-        if (urlPair == null) {
-            throw new UrlPairNotFoundException();
+        if (urlInfo == null) {
+            throw new UrlNotFoundException();
         }
 
-        return urlPair.getBigUrl();
+        return urlInfo.getUrl();
     }
 
 }

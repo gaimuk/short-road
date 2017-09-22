@@ -1,6 +1,6 @@
 package com.gaimuk.shortroad.controller;
 
-import com.gaimuk.shortroad.common.pojo.UrlPairNotFoundException;
+import com.gaimuk.shortroad.common.exception.UrlNotFoundException;
 import com.gaimuk.shortroad.controller.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,10 +21,10 @@ public class GlobalControllerAdvice {
      *
      * @return
      */
-    @ExceptionHandler({UrlPairNotFoundException.class})
+    @ExceptionHandler({UrlNotFoundException.class})
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ErrorResponse handleUrlPairNotFoundException() {
+    public ErrorResponse handleUrlNotFoundException() {
         return new ErrorResponse("URL is invalid");
     }
 
