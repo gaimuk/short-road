@@ -18,15 +18,15 @@ public class UrlService {
     private UrlSeqRepository urlSeqRepository;
 
     /**
-     * Persists the big URL and return the base62-encoded seq number
+     * Persists the long URL and return the base62-encoded seq number
      *
-     * @param bigUrl
+     * @param longUrl
      * @return
      */
-    public String shorten(final String bigUrl) {
-        // Construct UrlInfo with the generated TinyUrl ID
+    public String shorten(final String longUrl) {
+        // Construct UrlInfo with the generated shortUrl ID
         UrlInfo inputUrlInfo = new UrlInfo();
-        inputUrlInfo.setUrl(bigUrl);
+        inputUrlInfo.setUrl(longUrl);
         inputUrlInfo.setUrlSeq(urlSeqRepository.next());
 
         final Long urlSeq = urlInfoRepository.save(inputUrlInfo).getUrlSeq();
@@ -34,15 +34,15 @@ public class UrlService {
     }
 
     /**
-     * Retrieve the URL pair record from DB using base62-decoded tiny URL as seq,
-     * then return the original big URL
+     * Retrieve the URLInfo record from DB using base62-decoded short URL token as seq num,
+     * then return the original long URL
      *
-     * @param tinyUrl
+     * @param shortUrlToken
      * @return
      * @throws UrlNotFoundException
      */
-    public String lengthen(final String tinyUrl) throws UrlNotFoundException {
-        final UrlInfo urlInfo = urlInfoRepository.findByUrlSeq(Base58Util.decode(tinyUrl));
+    public String lengthen(final String shortUrlToken) throws UrlNotFoundException {
+        final UrlInfo urlInfo = urlInfoRepository.findByUrlSeq(Base58Util.decode(shortUrlToken));
 
         if (urlInfo == null) {
             throw new UrlNotFoundException();

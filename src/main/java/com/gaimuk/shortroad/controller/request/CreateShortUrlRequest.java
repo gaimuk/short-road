@@ -3,7 +3,7 @@ package com.gaimuk.shortroad.controller.request;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-public class CreateTinyUrlRequest {
+public class CreateShortUrlRequest {
 
     @NotNull
     @Size(min = 1, max = 4096)

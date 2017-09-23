@@ -1,14 +1,14 @@
 package com.gaimuk.shortroad.controller.response;
 
-public class GetBigUrlResponse {
+public class GetLongUrlResponse {
 
     private String url;
 
-    public GetBigUrlResponse() {
+    public GetLongUrlResponse() {
 
     }
 
-    public GetBigUrlResponse(String url) {
+    public GetLongUrlResponse(String url) {
         this.url = url;
     }
 
