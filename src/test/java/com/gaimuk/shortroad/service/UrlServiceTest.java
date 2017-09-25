@@ -26,22 +26,16 @@ public class UrlServiceTest {
     @Mock
     private UrlInfoRepository urlInfoRepository;
 
-    @Mock
-    private UrlSeqRepository urlSeqRepository;
-
     @Test
     public void testShortenNormal() {
-        final String inputUrl = "http://www.google.com?t=33984&r=a%20b";
+        final String inputUrl = "http://www.google.com";
 
-        final long generatedUrlSeq = Long.MAX_VALUE;
-        when(urlSeqRepository.next()).thenReturn(generatedUrlSeq);
-
-        final UrlInfo savedUrlInfo = buildUrlInfo(inputUrl, generatedUrlSeq);
-        when(urlInfoRepository.save(any(UrlInfo.class))).thenReturn(savedUrlInfo);
+        final UrlInfo savedUrlInfo = buildUrlInfo(inputUrl, Long.MAX_VALUE);
+        when(urlInfoRepository.saveAndGenerateSeq(any(UrlInfo.class))).thenReturn(savedUrlInfo);
 
         assertThat(urlService.shorten(inputUrl))
                 .as("Output short URL token is base58-encoded generated seq num")
-                .isEqualTo(Base58Util.encode(generatedUrlSeq));
+                .isEqualTo(Base58Util.encode(savedUrlInfo.getUrlSeq()));
     }
 
     @Test

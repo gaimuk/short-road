@@ -14,9 +14,6 @@ public class UrlService {
     @Autowired
     private UrlInfoRepository urlInfoRepository;
 
-    @Autowired
-    private UrlSeqRepository urlSeqRepository;
-
     /**
      * Persists the long URL and return the base62-encoded seq number
      *
@@ -24,13 +21,11 @@ public class UrlService {
      * @return
      */
     public String shorten(final String longUrl) {
-        // Construct UrlInfo with the generated shortUrl ID
         UrlInfo inputUrlInfo = new UrlInfo();
         inputUrlInfo.setUrl(longUrl);
-        inputUrlInfo.setUrlSeq(urlSeqRepository.next());
 
-        final Long urlSeq = urlInfoRepository.save(inputUrlInfo).getUrlSeq();
-        return Base58Util.encode(urlSeq);
+        final Long savedUrlSeq = urlInfoRepository.saveAndGenerateSeq(inputUrlInfo).getUrlSeq();
+        return Base58Util.encode(savedUrlSeq);
     }
 
     /**
