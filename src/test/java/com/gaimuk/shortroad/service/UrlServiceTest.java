@@ -4,7 +4,6 @@ import com.gaimuk.shortroad.common.exception.UrlNotFoundException;
 import com.gaimuk.shortroad.common.util.Base58Util;
 import com.gaimuk.shortroad.data.mongodb.document.UrlInfo;
 import com.gaimuk.shortroad.data.mongodb.repository.UrlInfoRepository;
-import com.gaimuk.shortroad.data.mongodb.repository.UrlSeqRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -26,32 +25,42 @@ public class UrlServiceTest {
     @Mock
     private UrlInfoRepository urlInfoRepository;
 
+    @Mock
+    private Base58Util base58Util;
+
     @Test
     public void testShortenNormal() {
         final String inputUrl = "http://www.google.com";
-
         final UrlInfo savedUrlInfo = buildUrlInfo(inputUrl, Long.MAX_VALUE);
-        when(urlInfoRepository.saveAndGenerateSeq(any(UrlInfo.class))).thenReturn(savedUrlInfo);
+        final String encodedUrlSeq = "abcde";
 
+        when(urlInfoRepository.saveAndGenerateSeq(any(UrlInfo.class))).thenReturn(savedUrlInfo);
+        when(base58Util.encode(savedUrlInfo.getUrlSeq())).thenReturn(encodedUrlSeq);
+
+        // Verify the output short URL token match
         assertThat(urlService.shorten(inputUrl))
                 .as("Output short URL token is base58-encoded generated seq num")
-                .isEqualTo(Base58Util.encode(savedUrlInfo.getUrlSeq()));
+                .isEqualTo(encodedUrlSeq);
     }
 
     @Test
     public void testLengthenNormal() throws UrlNotFoundException {
+        final String inputShortUrlToken = "abcde";
         UrlInfo retrievedUrlInfo = buildUrlInfo("http://www.google.com?t=33984&r=a%20b", Long.MAX_VALUE);
+
+        when(base58Util.decode(inputShortUrlToken)).thenReturn(Long.MAX_VALUE);
         when(urlInfoRepository.findByUrlSeq(anyLong())).thenReturn(retrievedUrlInfo);
 
-        final String inputShortUrlToken = Base58Util.encode(Long.MAX_VALUE);
         assertThat(urlService.lengthen(inputShortUrlToken))
-                .as("Output long URL is retrieved from DB with Base58 decoded short URL token")
+                .as("Output long URL is retrieved from DB by using base58-decoded short URL token")
                 .isEqualTo(retrievedUrlInfo.getUrl());
     }
 
     @Test
     public void testLengthenUrlNotFound() throws UrlNotFoundException {
-        final String inputShortUrlToken = Base58Util.encode(Long.MAX_VALUE);
+        final String inputShortUrlToken = "abcde";
+
+        when(base58Util.decode(inputShortUrlToken)).thenReturn(Long.MAX_VALUE);
         when(urlInfoRepository.findByUrlSeq(anyLong())).thenReturn(null);
 
         assertThatExceptionOfType(UrlNotFoundException.class)

@@ -1,10 +1,9 @@
 package com.gaimuk.shortroad.service;
 
 import com.gaimuk.shortroad.common.exception.UrlNotFoundException;
-import com.gaimuk.shortroad.data.mongodb.document.UrlInfo;
-import com.gaimuk.shortroad.data.mongodb.repository.UrlSeqRepository;
-import com.gaimuk.shortroad.data.mongodb.repository.UrlInfoRepository;
 import com.gaimuk.shortroad.common.util.Base58Util;
+import com.gaimuk.shortroad.data.mongodb.document.UrlInfo;
+import com.gaimuk.shortroad.data.mongodb.repository.UrlInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +12,9 @@ public class UrlService {
 
     @Autowired
     private UrlInfoRepository urlInfoRepository;
+
+    @Autowired
+    private Base58Util base58Util;
 
     /**
      * Persists the long URL and return the base62-encoded seq number
@@ -25,7 +27,7 @@ public class UrlService {
         inputUrlInfo.setUrl(longUrl);
 
         final Long savedUrlSeq = urlInfoRepository.saveAndGenerateSeq(inputUrlInfo).getUrlSeq();
-        return Base58Util.encode(savedUrlSeq);
+        return base58Util.encode(savedUrlSeq);
     }
 
     /**
@@ -37,7 +39,7 @@ public class UrlService {
      * @throws UrlNotFoundException
      */
     public String lengthen(final String shortUrlToken) throws UrlNotFoundException {
-        final UrlInfo urlInfo = urlInfoRepository.findByUrlSeq(Base58Util.decode(shortUrlToken));
+        final UrlInfo urlInfo = urlInfoRepository.findByUrlSeq(base58Util.decode(shortUrlToken));
 
         if (urlInfo == null) {
             throw new UrlNotFoundException();
